@@ -1,0 +1,113 @@
+{
+  "nf_list": [
+    {
+      "name": "m_0",
+      "type": 0,
+      "id": 0
+    },
+    {
+      "name": "m_1",
+      "type": 0,
+      "id": 1
+    },
+    {
+      "name": "m_2",
+      "type": 0,
+      "id": 2
+    },
+    {
+      "name": "m_3",
+      "type": 0,
+      "id": 3
+    }
+  ],
+
+  "tenant_list": [
+    {
+      "name": "t_0",
+      "id": 0
+    },
+    {
+      "name": "t_1",
+      "id": 1
+    },
+    {
+      "name": "t_2",
+      "id": 2
+    }
+  ],
+
+  "flow_list": [
+    {
+      "name": "gamma_0",
+      "fromwhere": 0,
+      "towhere": 0,
+      "id": 0,
+      "traffic": 50
+    },
+    {
+      "name": "gamma_1",
+      "fromwhere": 0,
+      "towhere": 1,
+      "id": 1,
+      "traffic": 30
+    },
+    {
+      "name": "gamma_2",
+      "fromwhere": 0,
+      "towhere": 2,
+      "id": 2,
+      "traffic": 20
+    },
+    {
+      "name": "gamma_3",
+      "fromwhere": 1,
+      "towhere": 1,
+      "id": 3,
+      "traffic": 60
+    },
+    {
+      "name": "gamma_4",
+      "fromwhere": 1,
+      "towhere": 2,
+      "id": 4,
+      "traffic": 5
+    },
+    {
+      "name": "gamma_5",
+      "fromwhere": 1,
+      "towhere": 2,
+      "id": 5,
+      "traffic": 5
+    },
+    {
+      "name": "gamma_6",
+      "fromwhere": 1,
+      "towhere": 2,
+      "id": 6,
+      "traffic": 5
+    },
+    {
+      "name": "gamma_7",
+      "fromwhere": 2,
+      "towhere": 2,
+      "id": 7,
+      "traffic": 15
+    },
+    {
+      "name": "gamma_8",
+      "fromwhere": 2,
+      "towhere": 3,
+      "id": 8,
+      "traffic": 5
+    }
+    ,
+    {
+      "name": "gamma_9",
+      "fromwhere": 2,
+      "towhere": 3,
+      "id": 9,
+      "traffic": 5
+    }
+  ]
+}

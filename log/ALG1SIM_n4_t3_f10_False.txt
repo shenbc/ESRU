@@ -1,0 +1,156 @@
+M(NFs) : [[0, 0], [1, 0], [2, 0], [3, 0]]
+GAMMA(flows) : [[0, 0, 0, 50], [1, 0, 1, 30], [2, 0, 2, 20], [3, 1, 1, 60], [4, 1, 2, 5], [5, 1, 2, 5], [6, 1, 2, 5], [7, 2, 2, 15], [8, 2, 3, 5], [9, 2, 3, 5]]
+T(tenants) : [0, 1, 2]
+C(capicity) : 170
+U(time limit) : 100
+u(time cost) : 40
+binary(if trans {0,1} to [0,1]) : 0
+
+solutions:
+y_m0_gamma0=0.0
+y_m0_gamma1=0.0
+y_m0_gamma2=0.0
+y_m0_gamma3=0.0
+y_m0_gamma4=0.0
+y_m0_gamma5=0.0
+y_m0_gamma6=0.0
+y_m0_gamma7=0.0
+y_m0_gamma8=0.0
+y_m0_gamma9=0.0
+y_m1_gamma0=0.0
+y_m1_gamma1=0.25
+y_m1_gamma2=0.0
+y_m1_gamma3=0.25
+y_m1_gamma4=0.0
+y_m1_gamma5=0.0
+y_m1_gamma6=0.0
+y_m1_gamma7=0.0
+y_m1_gamma8=0.0
+y_m1_gamma9=0.0
+y_m2_gamma0=0.0
+y_m2_gamma1=0.0
+y_m2_gamma2=1.0
+y_m2_gamma3=0.0
+y_m2_gamma4=1.0
+y_m2_gamma5=1.0
+y_m2_gamma6=1.0
+y_m2_gamma7=1.0
+y_m2_gamma8=0.0
+y_m2_gamma9=0.0
+y_m3_gamma0=1.0
+y_m3_gamma1=0.75
+y_m3_gamma2=0.0
+y_m3_gamma3=0.75
+y_m3_gamma4=0.0
+y_m3_gamma5=0.0
+y_m3_gamma6=0.0
+y_m3_gamma7=0.0
+y_m3_gamma8=1.0
+y_m3_gamma9=1.0
+z_m0=0.0
+z_m1=0.25
+z_m2=1.0
+z_m3=1.0
+objective=2.25
+===================================
+
+
+after using alg1 rounding
+y_m0_gamma0 = 0
+y_m0_gamma1 = 0
+y_m0_gamma2 = 0
+y_m0_gamma3 = 0
+y_m0_gamma4 = 0
+y_m0_gamma5 = 0
+y_m0_gamma6 = 0
+y_m0_gamma7 = 0
+y_m0_gamma8 = 0
+y_m0_gamma9 = 0
+y_m1_gamma0 = 0
+y_m1_gamma1 = 0
+y_m1_gamma2 = 0
+y_m1_gamma3 = 0
+y_m1_gamma4 = 0
+y_m1_gamma5 = 0
+y_m1_gamma6 = 0
+y_m1_gamma7 = 0
+y_m1_gamma8 = 0
+y_m1_gamma9 = 0
+y_m2_gamma0 = 0
+y_m2_gamma1 = 0
+y_m2_gamma2 = 1
+y_m2_gamma3 = 0
+y_m2_gamma4 = 1
+y_m2_gamma5 = 1
+y_m2_gamma6 = 1
+y_m2_gamma7 = 1
+y_m2_gamma8 = 0
+y_m2_gamma9 = 0
+y_m3_gamma0 = 1
+y_m3_gamma1 = 1
+y_m3_gamma2 = 0
+y_m3_gamma3 = 1
+y_m3_gamma4 = 0
+y_m3_gamma5 = 0
+y_m3_gamma6 = 0
+y_m3_gamma7 = 0
+y_m3_gamma8 = 1
+y_m3_gamma9 = 1
+z_m0 = 0
+z_m1 = 0
+z_m2 = 1
+z_m3 = 1
+objective=2
+ratio=1.125
+===================================
+
+
+satisfy const 1
+y_m0_gamma0 = 0
+y_m0_gamma1 = 0
+y_m0_gamma2 = 0
+y_m0_gamma3 = 0
+y_m0_gamma4 = 0
+y_m0_gamma5 = 0
+y_m0_gamma6 = 0
+y_m0_gamma7 = 0
+y_m0_gamma8 = 0
+y_m0_gamma9 = 0
+y_m1_gamma0 = 0
+y_m1_gamma1 = 0
+y_m1_gamma2 = 0
+y_m1_gamma3 = 0
+y_m1_gamma4 = 0
+y_m1_gamma5 = 0
+y_m1_gamma6 = 0
+y_m1_gamma7 = 0
+y_m1_gamma8 = 0
+y_m1_gamma9 = 0
+y_m2_gamma0 = 0
+y_m2_gamma1 = 0
+y_m2_gamma2 = 1
+y_m2_gamma3 = 0
+y_m2_gamma4 = 1
+y_m2_gamma5 = 1
+y_m2_gamma6 = 1
+y_m2_gamma7 = 1
+y_m2_gamma8 = 0
+y_m2_gamma9 = 0
+y_m3_gamma0 = 1
+y_m3_gamma1 = 1
+y_m3_gamma2 = 0
+y_m3_gamma3 = 1
+y_m3_gamma4 = 0
+y_m3_gamma5 = 0
+y_m3_gamma6 = 0
+y_m3_gamma7 = 0
+y_m3_gamma8 = 1
+y_m3_gamma9 = 1
+z_m0 = 0
+z_m1 = 0
+z_m2 = 1
+z_m3 = 1
+objective_sat1=2
+ratio_sat1=1.125
+===================================
+

@@ -5,7 +5,7 @@ import time
 
 nf_num = 500
 tenant_num = 300
-flow_num = 100
+flow_num = 5000
 file_name = 'topo_n' + str(nf_num) + '_t' + str(tenant_num)+ '_f' + str(flow_num) + '_1'
 data = {}
 

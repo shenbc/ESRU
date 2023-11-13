@@ -160,6 +160,7 @@ def recheck_z(y_m_gama, z_m):
         for j in range(len(y_m_gama[i])):
             if y_m_gama[i][j]==1:
                 is_zero = False
+                break
         if is_zero == True:
             z_m[i] = 0
 
@@ -186,7 +187,7 @@ def alg1sim_sat1(hat_y_m_gama, hat_z_m, objective, y_m_gamma, use_opt):
             if isfind == False:  # 如果rounding之后NF全没开启（z全是0），随机开启一个
                 runwhich = random.randint(0, len(M) - 1)
                 hat_z_m_sat1[runwhich] = 1
-                hat_y_m_gama_sat1[runwhich * len(GAMMA)][i] = 1
+                hat_y_m_gama_sat1[runwhich][i] = 1
 
     recheck_z(hat_y_m_gama_sat1, hat_z_m_sat1)
 
@@ -209,11 +210,16 @@ def alg1sim_sat3(hat_y_m_gama_sat1, hat_z_m_sat1, objective, y_m_gamma, use_opt)
                 tempsum_y_m_gamma += hat_y_m_gama_sat1[i][j]*GAMMA[j][3]
                 hat_y_m_gama_sat3[i][j]=1
             elif hat_y_m_gama_sat1[i][j]==1:# 否则开启一个新NF
-                for [free_id, free_cap] in cur_free_m:
-                    if free_cap>=GAMMA[j][3]:
-                        free_cap -= GAMMA[j][3]
-                        hat_z_m_sat3[free_id]=1
-                        hat_y_m_gama_sat3[free_id][j]=1
+                print('find a disobey in m=',i,' f=',j)
+                for idx in range(len(cur_free_m)):
+                    # cur_free_m[idx][0] free_id
+                    # cur_free_m[idx][1] free_cap
+                    # print(cur_free_m[idx][0],' ---',cur_free_m[idx][1])
+                    if cur_free_m[idx][1]>=GAMMA[j][3]:
+                        cur_free_m[idx][1] -= GAMMA[j][3]
+                        hat_z_m_sat3[cur_free_m[idx][0]]=1
+                        hat_y_m_gama_sat3[cur_free_m[idx][0]][j]=1
+                        break
     recheck_z(hat_y_m_gama_sat3, hat_z_m_sat3)
     objective_hat_sat3 = sum(hat_z_m_sat3)
     return hat_y_m_gama_sat3, hat_z_m_sat3, objective_hat_sat3
@@ -312,33 +318,53 @@ def ALG1SIM():
         print("ratio_sat3=", ratio_sat3)
         print('===================================\n\n')
 
-
-    f.close()
+    return objective,objective_hat,objective_hat_sat1,objective_hat_sat3
 
 
 if __name__ == '__main__':
     M = []  # NF，如[[0, 0], [1, 0], [2, 0]]，id、服务类别
-    C = 170  # NF服务能力
+    C = 1700  # NF服务能力
     GAMMA = []  # 流，如[[0, 0, -1, 70], [1, 0, -1, 80]]，id、从、到、流量
     T = []  # tenant
     U = 100  # 更新时间限制
-    u = 40
+    u = 5
     binary = False
+    CYCLE = 3
 
-    topo_name = 'topo.json'
+    topo_name = ['topo_n500_t300_f5000_1.json','topo_n500_t300_f5000_2.json']
+    # topo_name = ['topo_n500_t300_f500_1.json', 'topo_n500_t300_f500_2.json']
+    CYCLE_TOPO = len(topo_name)
+    res = []
 
-    with open(topo_name) as json_file:
-        data = json.load(json_file)
-        for i in range(len(data['nf_list'])):
-            M.append([data['nf_list'][i]['id'], data['nf_list'][i]['type']])
-        for i in range(len(data['flow_list'])):
-            GAMMA.append(
-                [data['flow_list'][i]['id'], data['flow_list'][i]['fromwhere'], data['flow_list'][i]['towhere'],
-                 data['flow_list'][i]['traffic']])
-        for i in range(len(data['tenant_list'])):
-            T.append(data['tenant_list'][i]['id'])
+    for topo_id in range(CYCLE_TOPO):
+        with open(topo_name[topo_id]) as json_file:
+            data = json.load(json_file)
+            for i in range(len(data['nf_list'])):
+                M.append([data['nf_list'][i]['id'], data['nf_list'][i]['type']])
+            for i in range(len(data['flow_list'])):
+                GAMMA.append(
+                    [data['flow_list'][i]['id'], data['flow_list'][i]['fromwhere'], data['flow_list'][i]['towhere'],
+                     data['flow_list'][i]['traffic']])
+            for i in range(len(data['tenant_list'])):
+                T.append(data['tenant_list'][i]['id'])
 
-    filename = 'ALG1SIM_n' + str(len(M)) + '_t' + str(len(T)) + '_f' + str(len(GAMMA)) + '_' + str(binary)
-    f = open('log/' + filename + '.txt', 'w')
-    ALG1SIM()
-    f.close()
+        filename = 'ALG1SIM_n' + str(len(M)) + '_t' + str(len(T)) + '_f' + str(len(GAMMA)) + '_' + str(binary)
+        f = open('log/' + filename + '.txt', 'w')
+        objective = np.zeros(CYCLE)
+        objective_hat = np.zeros(CYCLE)
+        objective_hat_sat1 = np.zeros(CYCLE)
+        objective_hat_sat3 = np.zeros(CYCLE)
+        for i in range(CYCLE):
+            print('now in cycle: ', i)
+            f.write('now in cycle: ' + str(i))
+            objective[i], objective_hat[i], objective_hat_sat1[i], objective_hat_sat3[i] = ALG1SIM()
+        f.close()
+
+        # temp`````````````
+        print(objective, '\n', objective_hat, '\n', objective_hat_sat1, '\n', objective_hat_sat3, '\n')
+        res.append(objective)
+        res.append(objective_hat)
+        res.append(objective_hat_sat1)
+        res.append(objective_hat_sat3)
+        # `````````````````````````````
+    print(res)

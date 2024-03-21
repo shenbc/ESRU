@@ -3,9 +3,11 @@ import random
 import time
 
 
-nf_num = 500
-tenant_num = 300
-flow_num = 5000
+nf_num = 30
+tenant_num = 10
+flow_num = 100 # 一半已有流一半新流（dst = -1）
+flow_min = 500 # 每条流最小流量
+flow_max = 1000
 file_name = 'topo_n' + str(nf_num) + '_t' + str(tenant_num)+ '_f' + str(flow_num) + '_1'
 data = {}
 
@@ -34,14 +36,24 @@ for i in range(tenant_num):
 flows = []
 random.seed(time.time())
 for i in range(flow_num):
-    temp_flow = {
-      "name": "gamma_" + str(i),
-      "fromwhere": random.randint(0,tenant_num),
-      "towhere": random.randint(0,nf_num),
-      "id": i,
-      "traffic": random.randint(0,100) # [0,100) int
-    }
-    flows.append(temp_flow)
+    if i < flow_num/2:
+        temp_flow = {
+          "name": "gamma_" + str(i),
+          "fromwhere": random.randint(0,tenant_num),
+          "towhere": random.randint(0,nf_num),
+          "id": i,
+          "traffic": random.randint(flow_min, flow_max) # [0,100) int
+        }
+        flows.append(temp_flow)
+    else:
+        temp_flow = {
+            "name": "gamma_" + str(i),
+            "fromwhere": random.randint(0, tenant_num),
+            "towhere": -1, # 未被分配的新流
+            "id": i,
+            "traffic": random.randint(flow_min, flow_max)  # [0,100) int
+        }
+        flows.append(temp_flow)
 
 
 # 载入

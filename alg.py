@@ -7,7 +7,7 @@ import numpy as np
 
 
 def alg1sim_ori():
-    MyLP = pulp.LpProblem("alg1sim", sense=pulp.LpMinimize)
+    MyLP = pulp.LpProblem(name="alg1sim", sense=pulp.LpMinimize)
 
     # 初始化变量
     beta_n_gamma = []
@@ -320,18 +320,37 @@ def ALG1SIM():
 
     return objective,objective_hat,objective_hat_sat1,objective_hat_sat3
 
+def gamma_preset():
+    """
+    gamma列表前1/2是已有流量，删掉dynamic_precent1% (DYNAMIC_PCT1)
+    后1/2为新到的未分配的，保留dynamic_precent2% (DYNAMIC_PCT2)
+    :return: None，因为改的GAMMA是全局变量
+    """
+    global GAMMA
+    dynamic1 = int(len(GAMMA) * 0.5 * DYNAMIC_PCT1)
+    dynamic2 = int(len(GAMMA) * 0.5) - int(len(GAMMA) * 0.5 * DYNAMIC_PCT2)
+    GAMMA_temp = GAMMA[dynamic1:-dynamic2] # 前dynamic1个flow扔，从0.5开始要dynamic2个flow
+    for i in range(len(GAMMA_temp)):
+        GAMMA_temp[i][0] = i
+    GAMMA = GAMMA_temp
+    print('*******gamma_preset******')
+    print(len(GAMMA_temp))
+    print(len(GAMMA))
+    print(GAMMA)
 
 if __name__ == '__main__':
     M = []  # NF，如[[0, 0], [1, 0], [2, 0]]，id、服务类别
-    C = 1700  # NF服务能力
-    GAMMA = []  # 流，如[[0, 0, -1, 70], [1, 0, -1, 80]]，id、从、到、流量
+    C = 3400  # NF服务能力
+    GAMMA = []  # 流，如[[0, 0, -1, 70], [1, 0, -1, 80]]，id、从（租户）、到（nf）、流量，其中前1/2是已有流量，后1/2为新到的未分配的
     T = []  # tenant
-    U = 100  # 更新时间限制
-    u = 5
+    U = 200  # 更新时间限制
+    u = 0.5 # 一次所需时间，毫秒
+    DYNAMIC_PCT1 = 0.2 # 已有的流结束的比例
+    DYNAMIC_PCT2 = 0.2 # 新到的未分配的流的比例
     binary = False
     CYCLE = 3
 
-    topo_name = ['topo_n500_t300_f5000_1.json','topo_n500_t300_f5000_2.json']
+    topo_name = ['./topo/topo_n30_t10_f100_1.json']
     # topo_name = ['topo_n500_t300_f500_1.json', 'topo_n500_t300_f500_2.json']
     CYCLE_TOPO = len(topo_name)
     res = []
@@ -348,6 +367,7 @@ if __name__ == '__main__':
             for i in range(len(data['tenant_list'])):
                 T.append(data['tenant_list'][i]['id'])
 
+        gamma_preset()
         filename = 'ALG1SIM_n' + str(len(M)) + '_t' + str(len(T)) + '_f' + str(len(GAMMA)) + '_' + str(binary)
         f = open('log/' + filename + '.txt', 'w')
         objective = np.zeros(CYCLE)

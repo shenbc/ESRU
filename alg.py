@@ -1,12 +1,10 @@
 import pulp
-import json
 import random
 import time
-import copy
 import numpy as np
 
 
-def alg1sim_ori():
+def alg1sim_ori(M, C, GAMMA, T, U, u, binary, f):
     MyLP = pulp.LpProblem(name="alg1sim", sense=pulp.LpMinimize)
 
     # 初始化变量
@@ -70,6 +68,7 @@ def alg1sim_ori():
 
     MyLP.solve()
     objective = pulp.value(MyLP.objective)
+    assert (pulp.LpStatus[MyLP.status] == 'Optimal')
 
     # 结果
     temp_beta_n_gamma = np.array(beta_n_gamma)
@@ -87,7 +86,7 @@ def alg1sim_ori():
     return beta_n_gamma, y_m_gamma, z_m, objective
 
 
-def alg1sim_round(y_m_gamma, z_m, objective):
+def alg1sim_round(M, GAMMA, binary, y_m_gamma, z_m):
     # hat_z_m = []
     # hat_y_m_gama = []
     hat_z_m = np.zeros(len(M))
@@ -106,19 +105,19 @@ def alg1sim_round(y_m_gamma, z_m, objective):
                 # assert m[0]*len(GAMMA)+gamma[0] == the last pos in list
                 if hat_z_m[m[0]] == 0:
                     # hat_y_m_gama.append(0)
-                    hat_y_m_gama[m[0]][gamma[0]]=0
+                    hat_y_m_gama[m[0]][gamma[0]] = 0
                 else:
                     if random.random() < (y_m_gamma[m[0]][gamma[0]] * 1.0 / z_m[m[0]]):
-                        hat_y_m_gama[m[0]][gamma[0]]=1
+                        hat_y_m_gama[m[0]][gamma[0]] = 1
                     else:
-                        hat_y_m_gama[m[0]][gamma[0]]=0
+                        hat_y_m_gama[m[0]][gamma[0]] = 0
 
     objective_hat = sum(hat_z_m)
 
-
     return hat_y_m_gama, hat_z_m, objective_hat
 
-def try_assign_gamma_with_sat3(hat_y_gama_sat1, new_gamma_idx):
+
+def try_assign_gamma_with_sat3(GAMMA, C, hat_y_gama_sat1, new_gamma_idx):
     '''
     尝试增加一个gamma[idx]分给当前m。其中已分给当前m的流的情况是hat_y_m_gama_sat1
     :param hat_y_gama_sat1: size=1*len(GAMMA)的0-1行，表示当前分配给当前m的所有gamma方案
@@ -127,12 +126,13 @@ def try_assign_gamma_with_sat3(hat_y_gama_sat1, new_gamma_idx):
     '''
     current_c = 0
     for i in range(len(hat_y_gama_sat1)):
-        current_c += hat_y_gama_sat1[i]*GAMMA[i][3]
+        current_c += hat_y_gama_sat1[i] * GAMMA[i][3]
     current_c += GAMMA[new_gamma_idx][3]
-    if current_c <=C:
+    if current_c <= C:
         return True
     else:
         return False
+
 
 def cal_visit_seq(y, is_opt):
     """
@@ -145,8 +145,9 @@ def cal_visit_seq(y, is_opt):
     if is_opt == True:
         res = np.argsort(-y_temp)
     else:
-        res = [i for i in range(len(y))] # 不使用排序
+        res = [i for i in range(len(y))]  # 不使用排序
     return res
+
 
 def recheck_z(y_m_gama, z_m):
     """
@@ -158,13 +159,14 @@ def recheck_z(y_m_gama, z_m):
     for i in range(len(y_m_gama)):
         is_zero = True
         for j in range(len(y_m_gama[i])):
-            if y_m_gama[i][j]==1:
+            if y_m_gama[i][j] == 1:
                 is_zero = False
                 break
         if is_zero == True:
             z_m[i] = 0
 
-def alg1sim_sat1(hat_y_m_gama, hat_z_m, objective, y_m_gamma, use_opt):
+
+def alg1sim_sat1(M, GAMMA, C, hat_y_m_gama, hat_z_m, objective, y_m_gamma, use_opt):
     hat_y_m_gama_sat1 = np.zeros([len(M), len(GAMMA)])
     hat_z_m_sat1 = np.copy(hat_z_m)
     for i in range(len(GAMMA)):
@@ -180,7 +182,8 @@ def alg1sim_sat1(hat_y_m_gama, hat_z_m, objective, y_m_gamma, use_opt):
         if tempsum_y_m_gamma == 0:  # 如果遍历m之后y全是0，即一个都没被分配，那么找到一个z_m=1的m，将y^gamma_m=1
             isfind = False
             for j in range(len(M)):
-                if hat_z_m_sat1[j] == 1 and try_assign_gamma_with_sat3(hat_y_m_gama_sat1[j], i)==True: # 分配时顺便检查下sat3
+                if hat_z_m_sat1[j] == 1 and try_assign_gamma_with_sat3(GAMMA, C, hat_y_m_gama_sat1[j],
+                                                                       i) == True:  # 分配时顺便检查下sat3
                     hat_y_m_gama_sat1[j][i] = 1
                     isfind = True
                     break
@@ -195,36 +198,39 @@ def alg1sim_sat1(hat_y_m_gama, hat_z_m, objective, y_m_gamma, use_opt):
 
     return hat_y_m_gama_sat1, hat_z_m_sat1, objective_hat_sat1
 
-def alg1sim_sat3(hat_y_m_gama_sat1, hat_z_m_sat1, objective, y_m_gamma, use_opt):
+
+def alg1sim_sat3(M, GAMMA, C, hat_y_m_gama_sat1, hat_z_m_sat1, objective, y_m_gamma, use_opt):
     hat_y_m_gama_sat3 = np.zeros([len(M), len(GAMMA)])
     hat_z_m_sat3 = np.copy(hat_z_m_sat1)
-    cur_free_m = [] # 当前没有开启的NF
+    cur_free_m = []  # 当前没有开启的NF
     for i in range(len(hat_z_m_sat3)):
-        if hat_z_m_sat3[i]==0:
+        if hat_z_m_sat3[i] == 0:
             cur_free_m.append([i, C])
     for i in range(len(M)):
         tempsum_y_m_gamma = 0
-        vis_seq = cal_visit_seq(y_m_gamma[i], use_opt) # 先把y_m_gama[i]中，值比较大的满足了，小的就扔了
+        vis_seq = cal_visit_seq(y_m_gamma[i], use_opt)  # 先把y_m_gama[i]中，值比较大的满足了，小的就扔了
         for j in vis_seq:
-            if hat_y_m_gama_sat1[i][j]==1 and hat_y_m_gama_sat1[i][j]*GAMMA[j][3]+tempsum_y_m_gamma <= C: # 如果该行满足，则一切正常
-                tempsum_y_m_gamma += hat_y_m_gama_sat1[i][j]*GAMMA[j][3]
-                hat_y_m_gama_sat3[i][j]=1
-            elif hat_y_m_gama_sat1[i][j]==1:# 否则开启一个新NF
-                print('find a disobey in m=',i,' f=',j)
+            if hat_y_m_gama_sat1[i][j] == 1 and hat_y_m_gama_sat1[i][j] * GAMMA[j][
+                3] + tempsum_y_m_gamma <= C:  # 如果该行满足，则一切正常
+                tempsum_y_m_gamma += hat_y_m_gama_sat1[i][j] * GAMMA[j][3]
+                hat_y_m_gama_sat3[i][j] = 1
+            elif hat_y_m_gama_sat1[i][j] == 1:  # 否则开启一个新NF
+                print('find a disobey in m=', i, ' f=', j)
                 for idx in range(len(cur_free_m)):
                     # cur_free_m[idx][0] free_id
                     # cur_free_m[idx][1] free_cap
                     # print(cur_free_m[idx][0],' ---',cur_free_m[idx][1])
-                    if cur_free_m[idx][1]>=GAMMA[j][3]:
+                    if cur_free_m[idx][1] >= GAMMA[j][3]:
                         cur_free_m[idx][1] -= GAMMA[j][3]
-                        hat_z_m_sat3[cur_free_m[idx][0]]=1
-                        hat_y_m_gama_sat3[cur_free_m[idx][0]][j]=1
+                        hat_z_m_sat3[cur_free_m[idx][0]] = 1
+                        hat_y_m_gama_sat3[cur_free_m[idx][0]][j] = 1
                         break
     recheck_z(hat_y_m_gama_sat3, hat_z_m_sat3)
     objective_hat_sat3 = sum(hat_z_m_sat3)
     return hat_y_m_gama_sat3, hat_z_m_sat3, objective_hat_sat3
 
-def ALG1SIM():
+
+def ALG1SIM(M, C, GAMMA, T, U, u, binary, f):
     f.write('M(NFs) : ' + str(M) + '\n')
     f.write('GAMMA(flows) : ' + str(GAMMA) + '\n')
     f.write('T(tenants) : ' + str(T) + '\n')
@@ -234,13 +240,13 @@ def ALG1SIM():
     f.write('binary(if trans {0,1} to [0,1]) : ' + str(int(binary)) + '\n\n')
 
     # 原始LP ################################
-    beta_n_gamma, y_m_gamma, z_m, objective = alg1sim_ori()
+    beta_n_gamma, y_m_gamma, z_m, objective = alg1sim_ori(M, C, GAMMA, T, U, u, binary, f)
     # beta_n_gamma[i][j]  表示m i gamma j 是否为1，即原始gammaj是否被分配到了mi上，size=len(M)*len(GAMMA)
     # y_m_gamma[i][j]     表示m i gamma j 是否为1，即分配后gammaj是否被分配到了mi上，size=len(M)*len(GAMMA)
     # z_m[i]              表示m i 是否为1，即NF mi是否开启，size=len(M)
     # objective           表示目标函数值
-    print('beta_n_gamma\n',beta_n_gamma)
-    f.write('beta_n_gamma\n'+str(beta_n_gamma) + '\n')
+    print('beta_n_gamma\n', beta_n_gamma)
+    f.write('beta_n_gamma\n' + str(beta_n_gamma) + '\n')
 
     print('\nafter using alg1 LP ori\n')
     f.write('\nafter using alg1 LP ori\n')
@@ -251,9 +257,8 @@ def ALG1SIM():
     print('objective: ', objective)
     f.write("objective_hat: " + str(objective) + '\n')
 
-
     # rounding(alg1 ESRU) ###################################
-    hat_y_m_gama, hat_z_m, objective_hat = alg1sim_round(y_m_gamma, z_m, objective)
+    hat_y_m_gama, hat_z_m, objective_hat = alg1sim_round(M, GAMMA, binary, y_m_gamma, z_m)
 
     print('\nafter using alg1 rounding\n')
     f.write('\nafter using alg1 rounding\n')
@@ -276,7 +281,9 @@ def ALG1SIM():
 
     # satisfy const 1 ###################################
     # 按m序号从小到大（或y_m_gamma值从大到小）纵向遍历hat_y_m_gama，保证每列只有一个1（每个gamma只对应一个m）
-    hat_y_m_gama_sat1, hat_z_m_sat1, objective_hat_sat1 = alg1sim_sat1(hat_y_m_gama, hat_z_m, objective, y_m_gamma, 1)
+    hat_y_m_gama_sat1, hat_z_m_sat1, objective_hat_sat1 = alg1sim_sat1(M, GAMMA, C, hat_y_m_gama, hat_z_m, objective,
+                                                                       y_m_gamma, use_opt=1)
+
     print('\nafter satisfy const 1\n')
     f.write('\nafter satisfy const 1\n')
     print('hat_y_m_gama_sat1\n', hat_y_m_gama_sat1)
@@ -298,7 +305,8 @@ def ALG1SIM():
 
     # satisfy const 3 ###################################
     # 遍历每个m（横向），若超出了C约束，则把最右边（或者y_m_gamma最小的）的gamma踢掉，开一个新的z把踢掉的放在那
-    hat_y_m_gama_sat3, hat_z_m_sat3, objective_hat_sat3 = alg1sim_sat3(hat_y_m_gama_sat1, hat_z_m_sat1, objective, y_m_gamma, 1)
+    hat_y_m_gama_sat3, hat_z_m_sat3, objective_hat_sat3 = alg1sim_sat3(M, GAMMA, C, hat_y_m_gama_sat1, hat_z_m_sat1,
+                                                                       objective, y_m_gamma, 1)
     print('\nafter satisfy const 3\n')
     f.write('\nafter satisfy const 3\n')
     print('hat_y_m_gama_sat3\n', hat_y_m_gama_sat3)
@@ -318,73 +326,4 @@ def ALG1SIM():
         print("ratio_sat3=", ratio_sat3)
         print('===================================\n\n')
 
-    return objective,objective_hat,objective_hat_sat1,objective_hat_sat3
-
-def gamma_preset():
-    """
-    gamma列表前1/2是已有流量，删掉dynamic_precent1% (DYNAMIC_PCT1)
-    后1/2为新到的未分配的，保留dynamic_precent2% (DYNAMIC_PCT2)
-    :return: None，因为改的GAMMA是全局变量
-    """
-    global GAMMA
-    dynamic1 = int(len(GAMMA) * 0.5 * DYNAMIC_PCT1)
-    dynamic2 = int(len(GAMMA) * 0.5) - int(len(GAMMA) * 0.5 * DYNAMIC_PCT2)
-    GAMMA_temp = GAMMA[dynamic1:-dynamic2] # 前dynamic1个flow扔，从0.5开始要dynamic2个flow
-    for i in range(len(GAMMA_temp)):
-        GAMMA_temp[i][0] = i
-    GAMMA = GAMMA_temp
-    print('*******gamma_preset******')
-    print(len(GAMMA_temp))
-    print(len(GAMMA))
-    print(GAMMA)
-
-if __name__ == '__main__':
-    M = []  # NF，如[[0, 0], [1, 0], [2, 0]]，id、服务类别
-    C = 3400  # NF服务能力
-    GAMMA = []  # 流，如[[0, 0, -1, 70], [1, 0, -1, 80]]，id、从（租户）、到（nf）、流量，其中前1/2是已有流量，后1/2为新到的未分配的
-    T = []  # tenant
-    U = 200  # 更新时间限制
-    u = 0.5 # 一次所需时间，毫秒
-    DYNAMIC_PCT1 = 0.2 # 已有的流结束的比例
-    DYNAMIC_PCT2 = 0.2 # 新到的未分配的流的比例
-    binary = False
-    CYCLE = 3
-
-    topo_name = ['./topo/topo_n30_t10_f100_1.json']
-    # topo_name = ['topo_n500_t300_f500_1.json', 'topo_n500_t300_f500_2.json']
-    CYCLE_TOPO = len(topo_name)
-    res = []
-
-    for topo_id in range(CYCLE_TOPO):
-        with open(topo_name[topo_id]) as json_file:
-            data = json.load(json_file)
-            for i in range(len(data['nf_list'])):
-                M.append([data['nf_list'][i]['id'], data['nf_list'][i]['type']])
-            for i in range(len(data['flow_list'])):
-                GAMMA.append(
-                    [data['flow_list'][i]['id'], data['flow_list'][i]['fromwhere'], data['flow_list'][i]['towhere'],
-                     data['flow_list'][i]['traffic']])
-            for i in range(len(data['tenant_list'])):
-                T.append(data['tenant_list'][i]['id'])
-
-        gamma_preset()
-        filename = 'ALG1SIM_n' + str(len(M)) + '_t' + str(len(T)) + '_f' + str(len(GAMMA)) + '_' + str(binary)
-        f = open('log/' + filename + '.txt', 'w')
-        objective = np.zeros(CYCLE)
-        objective_hat = np.zeros(CYCLE)
-        objective_hat_sat1 = np.zeros(CYCLE)
-        objective_hat_sat3 = np.zeros(CYCLE)
-        for i in range(CYCLE):
-            print('now in cycle: ', i)
-            f.write('now in cycle: ' + str(i))
-            objective[i], objective_hat[i], objective_hat_sat1[i], objective_hat_sat3[i] = ALG1SIM()
-        f.close()
-
-        # temp`````````````
-        print(objective, '\n', objective_hat, '\n', objective_hat_sat1, '\n', objective_hat_sat3, '\n')
-        res.append(objective)
-        res.append(objective_hat)
-        res.append(objective_hat_sat1)
-        res.append(objective_hat_sat3)
-        # `````````````````````````````
-    print(res)
+    return objective, objective_hat, objective_hat_sat1, objective_hat_sat3

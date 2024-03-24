@@ -4,7 +4,7 @@ import random
 import time
 import copy
 import numpy as np
-from alg import ALG1SIM
+from alg1 import ALG1SIM
 
 
 def gamma_preset():
@@ -35,7 +35,7 @@ if __name__ == '__main__':
     CYCLE = 1
     f = None
 
-    topo_name = ['./topo/topo_n30_t10_f24000_1.json']
+    topo_name = ['./topo/topo_n30_t10_f12000_1.json']
     # topo_name = ['topo_n500_t300_f500_1.json', 'topo_n500_t300_f500_2.json']
     CYCLE_TOPO = len(topo_name)
     res = []

@@ -33,19 +33,19 @@ def make_topo():
         if i < flow_num/2:
             temp_flow = {
               "name": "gamma_" + str(i),
-              "fromwhere": random.randint(0,tenant_num),
-              "towhere": random.randint(0,nf_num),
+              "fromwhere": random.randint(0,tenant_num-1),
+              "towhere": random.randint(0,nf_num-1),
               "id": i,
-              "traffic": random.randint(flow_min, flow_max) # [0,100) int
+              "traffic": random.randint(flow_min, flow_max) # [0,100] int
             }
             flows.append(temp_flow)
         else:
             temp_flow = {
                 "name": "gamma_" + str(i),
-                "fromwhere": random.randint(0, tenant_num),
+                "fromwhere": random.randint(0, tenant_num-1),
                 "towhere": -1, # 未被分配的新流
                 "id": i,
-                "traffic": random.randint(flow_min, flow_max)  # [0,100) int
+                "traffic": random.randint(flow_min, flow_max)  # [0,100] int
             }
             flows.append(temp_flow)
 
@@ -62,9 +62,9 @@ def make_topo():
         json.dump(data, f, indent=2)
 
 if __name__ == '__main__':
-    nf_num = 30
+    nf_num = 30 # 30
     tenant_num = 10
-    flow_num_start = 2000  # 一半已有流一半新流（dst = -1）
+    flow_num_start = 2000  # 一半已有流一半新流（dst = -1）2000
     flow_min = 500  # 每条流最小流量
     flow_max = 1000
 

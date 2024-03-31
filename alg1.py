@@ -56,15 +56,16 @@ def alg1sim_ori(M, C, GAMMA, T, U, u, binary, f):
         tempsum_y_m_gamma = 0
         for gamma in GAMMA:
             tempsum_y_m_gamma += variables_y_m_gamma[m[0] * len(GAMMA) + gamma[0]] * gamma[3]
-        MyLP += tempsum_y_m_gamma <= C
+        MyLP += tempsum_y_m_gamma <= C * variables_z_m[m[0]]
+        # 修正前 MyLP += tempsum_y_m_gamma <= C
 
     # 等式4
     tempsum_update_time = 0
     for gamma in GAMMA:
         for m in M:
             tempsum_update_time += beta_n_gamma[m[0] * len(GAMMA) + gamma[0]] * (
-                    1 - variables_y_m_gamma[m[0] * len(GAMMA) + gamma[0]]) * u
-    MyLP += tempsum_update_time <= U
+                    1 - variables_y_m_gamma[m[0] * len(GAMMA) + gamma[0]])
+    MyLP += (tempsum_update_time <= U / u)
 
     MyLP.solve()
     objective = pulp.value(MyLP.objective)
@@ -231,8 +232,8 @@ def alg1sim_sat3(M, GAMMA, C, hat_y_m_gama_sat1, hat_z_m_sat1, objective, y_m_ga
 
 
 def ALG1SIM(M, C, GAMMA, T, U, u, binary, f):
-    f.write('M(NFs) : ' + str(M) + '\n')
-    f.write('GAMMA(flows) : ' + str(GAMMA) + '\n')
+    f.write('M(NFs) : ' + str(len(M)) + '\n')
+    f.write('GAMMA(flows) : ' + str(len(GAMMA)) + '\n')
     f.write('T(tenants) : ' + str(T) + '\n')
     f.write('C(capicity) : ' + str(C) + '\n')
     f.write('U(time limit) : ' + str(U) + '\n')

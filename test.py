@@ -24,6 +24,8 @@ def rounding(test_list):
     res_list[res_pos] = 1
     return res_list
 
+# print(rounding(test_list))
+
 res_check_list = np.zeros([len(test_list)])
 
 repeat_num = 10000

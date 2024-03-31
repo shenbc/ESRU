@@ -1,23 +1,16 @@
+import copy
+
 import pulp
 import random
 import time
 import numpy as np
 
 
-def alg_IP(M, C, GAMMA, T, U, u, f):
+def alg_IP(M, C, GAMMA, T, U, u, binary, f):
     """
     对比算法，不考虑时间约束U，0-1的整数规划
-    :param M:
-    :param C:
-    :param GAMMA:
-    :param T:
-    :param U:
-    :param u:
-    :param binary:
-    :param f:
-    :return:
     """
-    MyLP = pulp.LpProblem(name="alg_IP", sense=pulp.LpMinimize)
+    MyLP = pulp.LpProblem(name="alg1sim", sense=pulp.LpMinimize)
 
     # 初始化变量
     beta_n_gamma = []
@@ -29,16 +22,26 @@ def alg_IP(M, C, GAMMA, T, U, u, f):
                 beta_n_gamma.append(0)
 
     variables_y_m_gamma = []
-
-    for m in M:
-        for gamma in GAMMA:
-            variables_y_m_gamma.append(pulp.LpVariable(
-                'y_m' + str(m[0]) + '_gamma' + str(gamma[0]), lowBound=0, upBound=1, cat=pulp.LpBinary))
+    if binary:
+        for m in M:
+            for gamma in GAMMA:
+                variables_y_m_gamma.append(pulp.LpVariable(
+                    'y_m' + str(m[0]) + '_gamma' + str(gamma[0]), lowBound=0, upBound=1, cat=pulp.LpBinary))
+    else:
+        for m in M:
+            for gamma in GAMMA:
+                variables_y_m_gamma.append(pulp.LpVariable(
+                    'y_m' + str(m[0]) + '_gamma' + str(gamma[0]), lowBound=0, upBound=1, cat=pulp.LpContinuous))
 
     variables_z_m = []
-    for i in range(len(M)):
-        variables_z_m.append(pulp.LpVariable(
-            'z_m' + str(i), lowBound=0, upBound=1, cat=pulp.LpBinary))
+    if binary:
+        for i in range(len(M)):
+            variables_z_m.append(pulp.LpVariable(
+                'z_m' + str(i), lowBound=0, upBound=1, cat=pulp.LpBinary))
+    else:
+        for i in range(len(M)):
+            variables_z_m.append(pulp.LpVariable(
+                'z_m' + str(i), lowBound=0, upBound=1, cat=pulp.LpContinuous))
     MyLP += sum(variables_z_m), "min total z"
 
     # 等式1
@@ -58,10 +61,22 @@ def alg_IP(M, C, GAMMA, T, U, u, f):
         tempsum_y_m_gamma = 0
         for gamma in GAMMA:
             tempsum_y_m_gamma += variables_y_m_gamma[m[0] * len(GAMMA) + gamma[0]] * gamma[3]
-        MyLP += tempsum_y_m_gamma <= C
+        MyLP += tempsum_y_m_gamma <= C * variables_z_m[m[0]]
+        # 修正前 MyLP += tempsum_y_m_gamma <= C
+
+    # 等式4
+    # tempsum_update_time = 0
+    # for gamma in GAMMA:
+    #     for m in M:
+    #         tempsum_update_time += beta_n_gamma[m[0] * len(GAMMA) + gamma[0]] * (
+    #                 1 - variables_y_m_gamma[m[0] * len(GAMMA) + gamma[0]])
+    # MyLP += (tempsum_update_time <= U/u)
 
     MyLP.solve()
+    # pulp.LpSolverDefault.msg = 1
+    # MyLP.solve(pulp.PULP_CBC_CMD(msg=True))
     objective = pulp.value(MyLP.objective)
+    print(pulp.LpStatus[MyLP.status])
     assert (pulp.LpStatus[MyLP.status] == 'Optimal')
 
     # 结果
@@ -80,6 +95,37 @@ def alg_IP(M, C, GAMMA, T, U, u, f):
     return beta_n_gamma, y_m_gamma, z_m, objective
 
 
+def alg1sim_round(M, GAMMA, binary, y_m_gamma, z_m):
+    # hat_z_m = []
+    # hat_y_m_gama = []
+    hat_z_m = np.zeros(len(M))
+    hat_y_m_gama = np.zeros([len(M), len(GAMMA)])
+    random.seed(time.time())
+    if binary == False:
+        for m in M:
+            if random.random() < z_m[m[0]]:  # 遍历每个变量z_m，并以概率z_m将其设置为1
+                # hat_z_m.append(1)
+                hat_z_m[m[0]] = 1
+            else:
+                # hat_z_m.append(0)
+                hat_z_m[m[0]] = 0
+        for m in M:
+            for gamma in GAMMA:
+                # assert m[0]*len(GAMMA)+gamma[0] == the last pos in list
+                if hat_z_m[m[0]] == 0:
+                    # hat_y_m_gama.append(0)
+                    hat_y_m_gama[m[0]][gamma[0]] = 0
+                else:
+                    if random.random() < (y_m_gamma[m[0]][gamma[0]] * 1.0 / z_m[m[0]]):
+                        hat_y_m_gama[m[0]][gamma[0]] = 1
+                    else:
+                        hat_y_m_gama[m[0]][gamma[0]] = 0
+
+    objective_hat = sum(hat_z_m)
+
+    return hat_y_m_gama, hat_z_m, objective_hat
+
+
 def alg_SJF(M, C, GAMMA, T, f):
     """
     SJF对比算法，为具有最小流量需求的请求选择负担最小的NF【不变目前分配，不影响更新时间约束，但会有badput】
@@ -88,11 +134,10 @@ def alg_SJF(M, C, GAMMA, T, f):
 
     # 计算当前NF负载，和新到流new_gamma
     m_load = np.zeros(len(M))  # 当前NF负载
-    new_gamma = []  # 输出的流分配结果
+    new_gamma = copy.deepcopy(GAMMA)  # 输出的流分配结果
     for gamma in GAMMA:
         if gamma[2] != -1:
             m_load[gamma[2]] += gamma[3]
-        new_gamma.append(gamma)
 
     # 对流量排序，并把最小流量分给负载最轻的NF
     new_gamma.sort(key=lambda x: x[-1])
@@ -107,7 +152,30 @@ def alg_SJF(M, C, GAMMA, T, f):
         else:
             break
 
-    return new_gamma
+    # new_gamma输出转化
+    beta_n_gamma = []
+    for m in M:
+        for gamma in GAMMA:
+            if gamma[2] == m[0]:
+                beta_n_gamma.append(1)
+            else:
+                beta_n_gamma.append(0)
+    temp_beta_n_gamma = np.array(beta_n_gamma)
+    beta_n_gamma = np.reshape(temp_beta_n_gamma, (len(M), len(GAMMA)))
+    y_m_gama = np.zeros([len(M), len(GAMMA)])
+    z_m = np.zeros(len(M))
+    for i in range(len(M)):
+        for j in range(len(GAMMA)):
+            if new_gamma[j][2] == i:
+                y_m_gama[i][j] = 1
+                z_m[i] = 1
+    objective = np.sum(z_m)
+    flow_redict = 0  # 更改映射的流的条数
+    for i in range(len(M)):
+        for j in range(len(GAMMA)):
+            flow_redict += (int)(beta_n_gamma[i][j] * (1 - y_m_gama[i][j]))
+
+    return beta_n_gamma, y_m_gama, z_m, objective, m_load, flow_redict
 
 
 def realloc_gamma(new_gamma, m_load, m_idx, C, rec_pct, ext_pct):
@@ -121,12 +189,15 @@ def realloc_gamma(new_gamma, m_load, m_idx, C, rec_pct, ext_pct):
     for gamma in new_gamma:
         if gamma[2] == m_idx:
             # 当前找到了负载过低的NF上的一条流
-            # 接下来遍历其他NF，当这个NF负载大于最低阈值时执行分配
+            # 接下来遍历其他NF[m_idx2]，当这个NF负载大于最低阈值时执行分配
             for m_idx2 in range(len(m_load)):
-                if m_load[m_idx2] >= rec_pct * C and m_load[m_idx2] + gamma[3] <= ext_pct * C:
+                if m_idx2 == m_idx:
+                    continue
+                if m_load[m_idx2] + gamma[3] <= ext_pct * C:
                     gamma[2] = m_idx2
                     m_load[m_idx2] += gamma[3]
                     m_load[m_idx] -= gamma[3]
+                    break
 
     return new_gamma, m_load
 
@@ -138,57 +209,105 @@ def alg_RB(M, C, GAMMA, rec_pct=0.2, ext_pct=0.9):
     # 计算当前NF负载，和新到流new_gamma
 
     m_load = np.zeros(len(M))  # 当前NF负载
-    new_gamma = []  # 输出的流分配结果
+    new_gamma = copy.deepcopy(GAMMA)  # 输出的流分配结果
     for gamma in GAMMA:
         if gamma[2] != -1:
             m_load[gamma[2]] += gamma[3]
-        new_gamma.append(gamma)
-
-    for gamma in new_gamma:
-        if gamma[2] != -1:  # 如果流已经被分配则不考虑
-            continue
-
-        for m_idx in range(len(m_load)):
-            if m_load[m_idx] + gamma[3] <= C * ext_pct:
-                gamma[2] = m_idx
-                m_load[m_idx] += gamma[3]
 
     # 遍历所有NF，遇到小于rec_pct = 20%的就将其流量分配给别人
     for m_idx in range(len(m_load)):
         if m_load[m_idx] <= (C * rec_pct):
             # 对于每个负载过低的NF，执行下面函数
+            # print('\nreallocing')
+            # print(m_idx)
+            # print(m_load[m_idx])
             new_gamma, m_load = realloc_gamma(new_gamma, m_load, m_idx, C, rec_pct, ext_pct)
 
-    return new_gamma, m_load
+    print('m_load', m_load)
+
+    # new_gamma输出转化
+    beta_n_gamma = []
+    for m in M:
+        for gamma in GAMMA:
+            if gamma[2] == m[0]:
+                beta_n_gamma.append(1)
+            else:
+                beta_n_gamma.append(0)
+    temp_beta_n_gamma = np.array(beta_n_gamma)
+    beta_n_gamma = np.reshape(temp_beta_n_gamma, (len(M), len(GAMMA)))
+    y_m_gama = np.zeros([len(M), len(GAMMA)])
+    z_m = np.zeros(len(M))
+    for i in range(len(M)):
+        for j in range(len(GAMMA)):
+            if new_gamma[j][2] == i:
+                y_m_gama[i][j] = 1
+                z_m[i] = 1
+    objective = np.sum(z_m)
+    flow_redict = 0  # 更改映射的流的条数
+    for i in range(len(M)):
+        for j in range(len(GAMMA)):
+            flow_redict += (int)(beta_n_gamma[i][j] * (1 - y_m_gama[i][j]))
+
+    return beta_n_gamma, y_m_gama, z_m, objective, m_load, flow_redict
 
 
 def ALG1COMP(M, C, GAMMA, T, U, u, f):
-    f.write('M(NFs) : ' + str(M) + '\n')
-    f.write('GAMMA(flows) : ' + str(GAMMA) + '\n')
+    f.write('M(NFs) : ' + str(len(M)) + '\n')
+    f.write('GAMMA(flows) : ' + str(len(GAMMA)) + '\n')
     f.write('T(tenants) : ' + str(T) + '\n')
     f.write('C(capicity) : ' + str(C) + '\n')
     f.write('U(time limit) : ' + str(U) + '\n')
     f.write('u(time cost) : ' + str(u) + '\n')
 
-    # 对比算法，不考虑时间约束U，0-1的整数规划 ################################
-    beta_n_gamma, y_m_gamma_compIP, z_m_compIP, objective_compIP = alg_IP(M, C, GAMMA, T, U, u, f)
-    # beta_n_gamma[i][j]  表示m i gamma j 是否为1，即原始gammaj是否被分配到了mi上，size=len(M)*len(GAMMA)
-    # y_m_gamma[i][j]     表示m i gamma j 是否为1，即分配后gammaj是否被分配到了mi上，size=len(M)*len(GAMMA)
-    # z_m[i]              表示m i 是否为1，即NF mi是否开启，size=len(M)
-    # objective           表示目标函数值
-    print('beta_n_gamma\n', beta_n_gamma)
-    f.write('beta_n_gamma\n' + str(beta_n_gamma) + '\n')
+    # 对比算法，不考虑时间约束U，0-1的整数规划（实际是小数规划 + rounding） ################################
+    binary = False
+    beta_n_gamma, y_m_gamma_compIP, z_m_compIP, objective_compIP = alg_IP(M, C, GAMMA, T, U, u, binary, f)
+    # rounding
+    hat_y_m_gama_compIP, hat_z_m_compIP, objective_compIP2 = alg1sim_round(M, GAMMA, binary, y_m_gamma_compIP, z_m_compIP)
+    flow_redict = 0 # 更改映射的流的条数
+    for i in range(len(M)):
+        for j in range(len(GAMMA)):
+            flow_redict += (int)(beta_n_gamma[i][j] * (1-hat_y_m_gama_compIP[i][j]))
 
     print('\nafter using alg_IP\n')
     f.write('\nafter using alg_IP\n')
-    print('y_m_gamma\n', y_m_gamma_compIP)
-    f.write('y_m_gamma\n' + str(y_m_gamma_compIP) + '\n')
-    print('z_m\n', z_m_compIP)
-    f.write('z_m\n' + str(z_m_compIP) + '\n')
-    print('objective: ', objective_compIP)
-    f.write("objective_hat: " + str(objective_compIP) + '\n')
+    print('hat_y_m_gama_compIP\n', hat_y_m_gama_compIP)
+    f.write('hat_y_m_gama_compIP\n' + str(hat_y_m_gama_compIP) + '\n')
+    print('hat_z_m_compIP\n', hat_z_m_compIP)
+    f.write('hat_z_m_compIP\n' + str(hat_z_m_compIP) + '\n')
+    print("objective_compIP2: ", objective_compIP2)
+    f.write("objective_compIP2: " + str(objective_compIP2) + '\n')
+    print("flow_redict: ", flow_redict)
+    f.write("flow_redict: " + str(flow_redict) + '\n')
 
-    # 对比算法，最短作业优先
-    gamma_SJF = alg_SJF(M, C, GAMMA, T, f)
+    # 对比算法，最短作业优先 ################################
+    # beta_n_gamma, y_m_gama_SJF, z_m_SJF, objective_SJF, m_load_SJF, flow_redict_SJF = alg_SJF(M, C, GAMMA, T, f)
+    #
+    # print('\nafter using alg1sim_SJF\n')
+    # f.write('\nafter using alg1sim_SJF\n')
+    # print('y_m_gama_SJF\n', y_m_gama_SJF)
+    # f.write('y_m_gama_SJF\n' + str(y_m_gama_SJF) + '\n')
+    # print('z_m_SJF\n', z_m_SJF)
+    # f.write('z_m_SJF\n' + str(z_m_SJF) + '\n')
+    # print("objective_SJF: ", objective_SJF)
+    # f.write("objective_SJF: " + str(objective_SJF) + '\n')
+    # print("m_load_SJF: ", m_load_SJF)
+    # f.write("m_load_SJF: " + str(m_load_SJF) + '\n')
+    # print("flow_redict_SJF: ", flow_redict_SJF)
+    # f.write("flow_redict_SJF: " + str(flow_redict_SJF) + '\n')
 
-    # 对比算法，RB
+    # 对比算法，RB ################################
+    # beta_n_gamma, y_m_gama_RB, z_m_RB, objective_RB, m_load_RB, flow_redict_RB = alg_RB(M, C, GAMMA, rec_pct=0.6, ext_pct=0.9)
+    #
+    # print('\nafter using alg1sim_RB\n')
+    # f.write('\nafter using alg1sim_RB\n')
+    # print('y_m_gama_RB\n', y_m_gama_RB)
+    # f.write('y_m_gama_RB\n' + str(y_m_gama_RB) + '\n')
+    # print('z_m_RB\n', z_m_RB)
+    # f.write('z_m_RB\n' + str(z_m_RB) + '\n')
+    # print("objective_RB: ", objective_RB)
+    # f.write("objective_RB: " + str(objective_RB) + '\n')
+    # print("m_load_RB: ", m_load_RB)
+    # f.write("m_load_RB: " + str(m_load_RB) + '\n')
+    # print("flow_redict_RB: ", flow_redict_RB)
+    # f.write("flow_redict_RB: " + str(flow_redict_RB) + '\n')

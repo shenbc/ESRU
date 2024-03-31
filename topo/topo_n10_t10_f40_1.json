@@ -1,0 +1,378 @@
+{
+  "nf_list": [
+    {
+      "name": "m_0",
+      "type": 0,
+      "id": 0
+    },
+    {
+      "name": "m_1",
+      "type": 0,
+      "id": 1
+    },
+    {
+      "name": "m_2",
+      "type": 0,
+      "id": 2
+    },
+    {
+      "name": "m_3",
+      "type": 0,
+      "id": 3
+    },
+    {
+      "name": "m_4",
+      "type": 0,
+      "id": 4
+    },
+    {
+      "name": "m_5",
+      "type": 0,
+      "id": 5
+    },
+    {
+      "name": "m_6",
+      "type": 0,
+      "id": 6
+    },
+    {
+      "name": "m_7",
+      "type": 0,
+      "id": 7
+    },
+    {
+      "name": "m_8",
+      "type": 0,
+      "id": 8
+    },
+    {
+      "name": "m_9",
+      "type": 0,
+      "id": 9
+    }
+  ],
+  "tenant_list": [
+    {
+      "name": "t_0",
+      "id": 0
+    },
+    {
+      "name": "t_1",
+      "id": 1
+    },
+    {
+      "name": "t_2",
+      "id": 2
+    },
+    {
+      "name": "t_3",
+      "id": 3
+    },
+    {
+      "name": "t_4",
+      "id": 4
+    },
+    {
+      "name": "t_5",
+      "id": 5
+    },
+    {
+      "name": "t_6",
+      "id": 6
+    },
+    {
+      "name": "t_7",
+      "id": 7
+    },
+    {
+      "name": "t_8",
+      "id": 8
+    },
+    {
+      "name": "t_9",
+      "id": 9
+    }
+  ],
+  "flow_list": [
+    {
+      "name": "gamma_0",
+      "fromwhere": 8,
+      "towhere": 8,
+      "id": 0,
+      "traffic": 823
+    },
+    {
+      "name": "gamma_1",
+      "fromwhere": 8,
+      "towhere": 0,
+      "id": 1,
+      "traffic": 753
+    },
+    {
+      "name": "gamma_2",
+      "fromwhere": 6,
+      "towhere": 1,
+      "id": 2,
+      "traffic": 764
+    },
+    {
+      "name": "gamma_3",
+      "fromwhere": 2,
+      "towhere": 3,
+      "id": 3,
+      "traffic": 873
+    },
+    {
+      "name": "gamma_4",
+      "fromwhere": 4,
+      "towhere": 2,
+      "id": 4,
+      "traffic": 675
+    },
+    {
+      "name": "gamma_5",
+      "fromwhere": 3,
+      "towhere": 3,
+      "id": 5,
+      "traffic": 672
+    },
+    {
+      "name": "gamma_6",
+      "fromwhere": 5,
+      "towhere": 5,
+      "id": 6,
+      "traffic": 859
+    },
+    {
+      "name": "gamma_7",
+      "fromwhere": 5,
+      "towhere": 1,
+      "id": 7,
+      "traffic": 760
+    },
+    {
+      "name": "gamma_8",
+      "fromwhere": 5,
+      "towhere": 4,
+      "id": 8,
+      "traffic": 900
+    },
+    {
+      "name": "gamma_9",
+      "fromwhere": 2,
+      "towhere": 5,
+      "id": 9,
+      "traffic": 836
+    },
+    {
+      "name": "gamma_10",
+      "fromwhere": 3,
+      "towhere": 1,
+      "id": 10,
+      "traffic": 511
+    },
+    {
+      "name": "gamma_11",
+      "fromwhere": 3,
+      "towhere": 4,
+      "id": 11,
+      "traffic": 765
+    },
+    {
+      "name": "gamma_12",
+      "fromwhere": 10,
+      "towhere": 4,
+      "id": 12,
+      "traffic": 908
+    },
+    {
+      "name": "gamma_13",
+      "fromwhere": 6,
+      "towhere": 8,
+      "id": 13,
+      "traffic": 945
+    },
+    {
+      "name": "gamma_14",
+      "fromwhere": 2,
+      "towhere": 9,
+      "id": 14,
+      "traffic": 932
+    },
+    {
+      "name": "gamma_15",
+      "fromwhere": 8,
+      "towhere": 3,
+      "id": 15,
+      "traffic": 800
+    },
+    {
+      "name": "gamma_16",
+      "fromwhere": 7,
+      "towhere": 7,
+      "id": 16,
+      "traffic": 639
+    },
+    {
+      "name": "gamma_17",
+      "fromwhere": 3,
+      "towhere": 8,
+      "id": 17,
+      "traffic": 530
+    },
+    {
+      "name": "gamma_18",
+      "fromwhere": 1,
+      "towhere": 6,
+      "id": 18,
+      "traffic": 559
+    },
+    {
+      "name": "gamma_19",
+      "fromwhere": 3,
+      "towhere": 8,
+      "id": 19,
+      "traffic": 681
+    },
+    {
+      "name": "gamma_20",
+      "fromwhere": 1,
+      "towhere": -1,
+      "id": 20,
+      "traffic": 545
+    },
+    {
+      "name": "gamma_21",
+      "fromwhere": 0,
+      "towhere": -1,
+      "id": 21,
+      "traffic": 540
+    },
+    {
+      "name": "gamma_22",
+      "fromwhere": 1,
+      "towhere": -1,
+      "id": 22,
+      "traffic": 880
+    },
+    {
+      "name": "gamma_23",
+      "fromwhere": 9,
+      "towhere": -1,
+      "id": 23,
+      "traffic": 548
+    },
+    {
+      "name": "gamma_24",
+      "fromwhere": 1,
+      "towhere": -1,
+      "id": 24,
+      "traffic": 696
+    },
+    {
+      "name": "gamma_25",
+      "fromwhere": 4,
+      "towhere": -1,
+      "id": 25,
+      "traffic": 764
+    },
+    {
+      "name": "gamma_26",
+      "fromwhere": 1,
+      "towhere": -1,
+      "id": 26,
+      "traffic": 862
+    },
+    {
+      "name": "gamma_27",
+      "fromwhere": 5,
+      "towhere": -1,
+      "id": 27,
+      "traffic": 573
+    },
+    {
+      "name": "gamma_28",
+      "fromwhere": 9,
+      "towhere": -1,
+      "id": 28,
+      "traffic": 564
+    },
+    {
+      "name": "gamma_29",
+      "fromwhere": 7,
+      "towhere": -1,
+      "id": 29,
+      "traffic": 537
+    },
+    {
+      "name": "gamma_30",
+      "fromwhere": 2,
+      "towhere": -1,
+      "id": 30,
+      "traffic": 918
+    },
+    {
+      "name": "gamma_31",
+      "fromwhere": 3,
+      "towhere": -1,
+      "id": 31,
+      "traffic": 931
+    },
+    {
+      "name": "gamma_32",
+      "fromwhere": 3,
+      "towhere": -1,
+      "id": 32,
+      "traffic": 856
+    },
+    {
+      "name": "gamma_33",
+      "fromwhere": 5,
+      "towhere": -1,
+      "id": 33,
+      "traffic": 1000
+    },
+    {
+      "name": "gamma_34",
+      "fromwhere": 9,
+      "towhere": -1,
+      "id": 34,
+      "traffic": 574
+    },
+    {
+      "name": "gamma_35",
+      "fromwhere": 6,
+      "towhere": -1,
+      "id": 35,
+      "traffic": 882
+    },
+    {
+      "name": "gamma_36",
+      "fromwhere": 8,
+      "towhere": -1,
+      "id": 36,
+      "traffic": 725
+    },
+    {
+      "name": "gamma_37",
+      "fromwhere": 1,
+      "towhere": -1,
+      "id": 37,
+      "traffic": 530
+    },
+    {
+      "name": "gamma_38",
+      "fromwhere": 8,
+      "towhere": -1,
+      "id": 38,
+      "traffic": 524
+    },
+    {
+      "name": "gamma_39",
+      "fromwhere": 7,
+      "towhere": -1,
+      "id": 39,
+      "traffic": 732
+    }
+  ]
+}

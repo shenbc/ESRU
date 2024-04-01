@@ -4,9 +4,10 @@ import pulp
 import random
 import time
 import numpy as np
+from cal_func import cal_res
 
 
-def alg_IP(M, C, GAMMA, T, U, u, binary, f):
+def alg_IP(M, C, GAMMA, T, U, u, binary):
     """
     对比算法，不考虑时间约束U，0-1的整数规划
     """
@@ -95,7 +96,7 @@ def alg_IP(M, C, GAMMA, T, U, u, binary, f):
     return beta_n_gamma, y_m_gamma, z_m, objective
 
 
-def alg1sim_round(M, GAMMA, binary, y_m_gamma, z_m):
+def alg1sim_round(M, GAMMA, y_m_gamma, z_m, binary):
     # hat_z_m = []
     # hat_y_m_gama = []
     hat_z_m = np.zeros(len(M))
@@ -223,8 +224,6 @@ def alg_RB(M, C, GAMMA, rec_pct=0.2, ext_pct=0.9):
             # print(m_load[m_idx])
             new_gamma, m_load = realloc_gamma(new_gamma, m_load, m_idx, C, rec_pct, ext_pct)
 
-    print('m_load', m_load)
-
     # new_gamma输出转化
     beta_n_gamma = []
     for m in M:
@@ -260,29 +259,32 @@ def ALG1COMP(M, C, GAMMA, T, U, u, f):
     f.write('u(time cost) : ' + str(u) + '\n')
 
     # 对比算法，不考虑时间约束U，0-1的整数规划（实际是小数规划 + rounding） ################################
-    binary = False
-    beta_n_gamma, y_m_gamma_compIP, z_m_compIP, objective_compIP = alg_IP(M, C, GAMMA, T, U, u, binary, f)
-    # rounding
-    hat_y_m_gama_compIP, hat_z_m_compIP, objective_compIP2 = alg1sim_round(M, GAMMA, binary, y_m_gamma_compIP, z_m_compIP)
-    flow_redict = 0 # 更改映射的流的条数
-    for i in range(len(M)):
-        for j in range(len(GAMMA)):
-            flow_redict += (int)(beta_n_gamma[i][j] * (1-hat_y_m_gama_compIP[i][j]))
+    beta_n_gamma, y_m_gamma_compIP, z_m_compIP, objective_compIP = alg_IP(M, C, GAMMA, T, U, u, binary=False)
+    hat_y_m_gama_compIP, hat_z_m_compIP, objective_compIP2 = alg1sim_round(M, GAMMA, y_m_gamma_compIP, z_m_compIP,
+                                                                           binary=False)
+    objective, flow_redict, throughtput, badput, disobayC = cal_res(M, C, GAMMA, hat_y_m_gama_compIP, binary=True)
+    print('Using alg_IP\n', objective, '\t', flow_redict, '\t', throughtput, '\t', badput, '\t', disobayC, '\n')
+    f.write('Using alg_IP\n' + str(objective) + '\t' + str(flow_redict) + '\t' + str(throughtput) + '\t' + str(
+        badput) + '\t' + str(disobayC) + '\n')
 
-    print('\nafter using alg_IP\n')
-    f.write('\nafter using alg_IP\n')
-    print('hat_y_m_gama_compIP\n', hat_y_m_gama_compIP)
-    f.write('hat_y_m_gama_compIP\n' + str(hat_y_m_gama_compIP) + '\n')
-    print('hat_z_m_compIP\n', hat_z_m_compIP)
-    f.write('hat_z_m_compIP\n' + str(hat_z_m_compIP) + '\n')
-    print("objective_compIP2: ", objective_compIP2)
-    f.write("objective_compIP2: " + str(objective_compIP2) + '\n')
-    print("flow_redict: ", flow_redict)
-    f.write("flow_redict: " + str(flow_redict) + '\n')
+    # print('\nafter using alg_IP\n')
+    # f.write('\nafter using alg_IP\n')
+    # print('hat_y_m_gama_compIP\n', hat_y_m_gama_compIP)
+    # f.write('hat_y_m_gama_compIP\n' + str(hat_y_m_gama_compIP) + '\n')
+    # print('hat_z_m_compIP\n', hat_z_m_compIP)
+    # f.write('hat_z_m_compIP\n' + str(hat_z_m_compIP) + '\n')
+    # print("objective_compIP2: ", objective_compIP2)
+    # f.write("objective_compIP2: " + str(objective_compIP2) + '\n')
+    # print("flow_redict: ", flow_redict)
+    # f.write("flow_redict: " + str(flow_redict) + '\n')
 
     # 对比算法，最短作业优先 ################################
-    # beta_n_gamma, y_m_gama_SJF, z_m_SJF, objective_SJF, m_load_SJF, flow_redict_SJF = alg_SJF(M, C, GAMMA, T, f)
-    #
+    beta_n_gamma, y_m_gama_SJF, z_m_SJF, objective_SJF, m_load_SJF, flow_redict_SJF = alg_SJF(M, C, GAMMA, T, f)
+    objective, flow_redict, throughtput, badput, disobayC = cal_res(M, C, GAMMA, y_m_gama_SJF, binary=True)
+    print('Using alg_SJF\n', objective, '\t', flow_redict, '\t', throughtput, '\t', badput, '\t', disobayC, '\n')
+    f.write('Using alg_SJF\n' + str(objective) + '\t' + str(flow_redict) + '\t' + str(throughtput) + '\t' + str(
+        badput) + '\t' + str(disobayC) + '\n')
+
     # print('\nafter using alg1sim_SJF\n')
     # f.write('\nafter using alg1sim_SJF\n')
     # print('y_m_gama_SJF\n', y_m_gama_SJF)
@@ -297,8 +299,12 @@ def ALG1COMP(M, C, GAMMA, T, U, u, f):
     # f.write("flow_redict_SJF: " + str(flow_redict_SJF) + '\n')
 
     # 对比算法，RB ################################
-    # beta_n_gamma, y_m_gama_RB, z_m_RB, objective_RB, m_load_RB, flow_redict_RB = alg_RB(M, C, GAMMA, rec_pct=0.6, ext_pct=0.9)
-    #
+    beta_n_gamma, y_m_gama_RB, z_m_RB, objective_RB, m_load_RB, flow_redict_RB = alg_RB(M, C, GAMMA, rec_pct=0.6, ext_pct=0.9)
+    objective, flow_redict, throughtput, badput, disobayC = cal_res(M, C, GAMMA, y_m_gama_RB, binary=True)
+    print('Using alg_RB\n', objective, '\t', flow_redict, '\t', throughtput, '\t', badput, '\t', disobayC, '\n')
+    f.write('Using alg_RB\n' + str(objective) + '\t' + str(flow_redict) + '\t' + str(throughtput) + '\t' + str(
+        badput) + '\t' + str(disobayC) + '\n')
+
     # print('\nafter using alg1sim_RB\n')
     # f.write('\nafter using alg1sim_RB\n')
     # print('y_m_gama_RB\n', y_m_gama_RB)

@@ -28,8 +28,8 @@ if __name__ == '__main__':
     C = 333000  # NF服务能力333000
     GAMMA = []  # 流，如[[0, 0, -1, 70], [1, 0, -1, 80]]，id、从（租户）、到（nf）、流量，其中前1/2是已有流量，后1/2为新到的未分配的
     T = []  # tenant
-    U = 400  # 更新时间限制
-    u = 0.1  # 一次所需时间，毫秒
+    U = 800  # 更新时间限制
+    u = 0.2  # 一次所需时间，毫秒
     DYNAMIC_PCT1 = 0.2  # 已有的流结束的比例
     DYNAMIC_PCT2 = 0.2  # 新到的未分配的流的比例
     binary = False
@@ -37,7 +37,12 @@ if __name__ == '__main__':
     f = None
 
     topo_name = ['./topo/topo_n30_t10_f12000_1.json']
-    # topo_name = ['./topo/topo_n30_t10_f16000_1.json', './topo/topo_n30_t10_f18000_1.json']
+    # topo_name = ['./topo/topo_n30_t10_f2000_1.json', './topo/topo_n30_t10_f4000_1.json',
+    #              './topo/topo_n30_t10_f6000_1.json', './topo/topo_n30_t10_f8000_1.json',
+    #              './topo/topo_n30_t10_f10000_1.json', './topo/topo_n30_t10_f12000_1.json',
+    #              './topo/topo_n30_t10_f14000_1.json', './topo/topo_n30_t10_f16000_1.json',
+    #              './topo/topo_n30_t10_f18000_1.json', './topo/topo_n30_t10_f20000_1.json',
+    #              './topo/topo_n30_t10_f22000_1.json', './topo/topo_n30_t10_f24000_1.json']
     CYCLE_TOPO = len(topo_name)
     res = []
 
@@ -55,26 +60,13 @@ if __name__ == '__main__':
         gamma_preset()
 
         # ALG1
-        # filename = 'ALG1SIM_n' + str(len(M)) + '_t' + str(len(T)) + '_f' + str(len(GAMMA)) + '_' + str(binary)
-        # f = open('log/' + filename + '.txt', 'w')
-        # objective = np.zeros(CYCLE)
-        # objective_hat = np.zeros(CYCLE)
-        # objective_hat_sat1 = np.zeros(CYCLE)
-        # objective_hat_sat3 = np.zeros(CYCLE)
-        # for i in range(CYCLE):
-        #     print('now in cycle: ', i, '\n')
-        #     f.write('now in cycle: ' + str(i) + str('\n'))
-        #     objective[i], objective_hat[i], objective_hat_sat1[i], objective_hat_sat3[i] = ALG1SIM(M, C, GAMMA, T, U, u,
-        #                                                                                            binary, f)
-        # f.close()
-
-        # temp`````````````
-        # print(objective, '\n', objective_hat, '\n', objective_hat_sat1, '\n', objective_hat_sat3, '\n')
-        # res.append(objective)
-        # res.append(objective_hat)
-        # res.append(objective_hat_sat1)
-        # res.append(objective_hat_sat3)
-        # `````````````````````````````
+        filename = 'ALG1SIM_n' + str(len(M)) + '_t' + str(len(T)) + '_f' + str(len(GAMMA)) + '_' + str(binary)
+        f = open('log/' + filename + '.txt', 'w')
+        for i in range(CYCLE):
+            print('now in cycle: ', i, '\n')
+            f.write('now in cycle: ' + str(i) + str('\n'))
+            ALG1SIM(M, C, GAMMA, T, U, u, binary, f)
+        f.close()
 
         # ALG1COMP
         filename = 'ALG1COMP_n' + str(len(M)) + '_t' + str(len(T)) + '_f' + str(len(GAMMA)) + '_' + str(binary)

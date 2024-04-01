@@ -2,7 +2,7 @@ import pulp
 import random
 import time
 import numpy as np
-
+from cal_func import cal_res
 
 def alg1sim_ori(M, C, GAMMA, T, U, u, binary, f):
     MyLP = pulp.LpProblem(name="alg1sim", sense=pulp.LpMinimize)
@@ -167,7 +167,7 @@ def recheck_z(y_m_gama, z_m):
             z_m[i] = 0
 
 
-def alg1sim_sat1(M, GAMMA, C, hat_y_m_gama, hat_z_m, objective, y_m_gamma, use_opt):
+def alg1sim_sat1(M, GAMMA, C, hat_y_m_gama, hat_z_m, y_m_gamma, use_opt):
     hat_y_m_gama_sat1 = np.zeros([len(M), len(GAMMA)])
     hat_z_m_sat1 = np.copy(hat_z_m)
     for i in range(len(GAMMA)):
@@ -200,7 +200,7 @@ def alg1sim_sat1(M, GAMMA, C, hat_y_m_gama, hat_z_m, objective, y_m_gamma, use_o
     return hat_y_m_gama_sat1, hat_z_m_sat1, objective_hat_sat1
 
 
-def alg1sim_sat3(M, GAMMA, C, hat_y_m_gama_sat1, hat_z_m_sat1, objective, y_m_gamma, use_opt):
+def alg1sim_sat3(M, GAMMA, C, hat_y_m_gama_sat1, hat_z_m_sat1, y_m_gamma, use_opt):
     hat_y_m_gama_sat3 = np.zeros([len(M), len(GAMMA)])
     hat_z_m_sat3 = np.copy(hat_z_m_sat1)
     cur_free_m = []  # 当前没有开启的NF
@@ -216,7 +216,7 @@ def alg1sim_sat3(M, GAMMA, C, hat_y_m_gama_sat1, hat_z_m_sat1, objective, y_m_ga
                 tempsum_y_m_gamma += hat_y_m_gama_sat1[i][j] * GAMMA[j][3]
                 hat_y_m_gama_sat3[i][j] = 1
             elif hat_y_m_gama_sat1[i][j] == 1:  # 否则开启一个新NF
-                print('find a disobey in m=', i, ' f=', j)
+                # print('find a disobey in m=', i, ' f=', j)
                 for idx in range(len(cur_free_m)):
                     # cur_free_m[idx][0] free_id
                     # cur_free_m[idx][1] free_cap
@@ -246,85 +246,98 @@ def ALG1SIM(M, C, GAMMA, T, U, u, binary, f):
     # y_m_gamma[i][j]     表示m i gamma j 是否为1，即分配后gammaj是否被分配到了mi上，size=len(M)*len(GAMMA)
     # z_m[i]              表示m i 是否为1，即NF mi是否开启，size=len(M)
     # objective           表示目标函数值
-    print('beta_n_gamma\n', beta_n_gamma)
-    f.write('beta_n_gamma\n' + str(beta_n_gamma) + '\n')
+    _, flow_redict, throughtput, badput, disobayC = cal_res(M, C, GAMMA, y_m_gamma, binary=False)
+    print('Using alg_ori\n', objective, '\t', flow_redict, '\t', throughtput, '\t', badput, '\t', disobayC, '\n')
+    f.write('Using alg_ori\n' + str(objective) + '\t' + str(flow_redict) + '\t' + str(throughtput) + '\t' + str(
+        badput) + '\t' + str(disobayC) + '\n')
 
-    print('\nafter using alg1 LP ori\n')
-    f.write('\nafter using alg1 LP ori\n')
-    print('y_m_gamma\n', y_m_gamma)
-    f.write('y_m_gamma\n' + str(y_m_gamma) + '\n')
-    print('z_m\n', z_m)
-    f.write('z_m\n' + str(z_m) + '\n')
-    print('objective: ', objective)
-    f.write("objective_hat: " + str(objective) + '\n')
+    # print('beta_n_gamma\n', beta_n_gamma)
+    # f.write('beta_n_gamma\n' + str(beta_n_gamma) + '\n')
+    # print('\nafter using alg1 LP ori\n')
+    # f.write('\nafter using alg1 LP ori\n')
+    # print('y_m_gamma\n', y_m_gamma)
+    # f.write('y_m_gamma\n' + str(y_m_gamma) + '\n')
+    # print('z_m\n', z_m)
+    # f.write('z_m\n' + str(z_m) + '\n')
+    # print('objective: ', objective)
+    # f.write("objective_hat: " + str(objective) + '\n')
 
     # rounding(alg1 ESRU) ###################################
     hat_y_m_gama, hat_z_m, objective_hat = alg1sim_round(M, GAMMA, binary, y_m_gamma, z_m)
+    objective, flow_redict, throughtput, badput, disobayC = cal_res(M, C, GAMMA, hat_y_m_gama, binary=True)
+    print('Using alg_round\n', objective, '\t', flow_redict, '\t', throughtput, '\t', badput, '\t', disobayC, '\n')
+    f.write('Using alg_round\n' + str(objective) + '\t' + str(flow_redict) + '\t' + str(throughtput) + '\t' + str(
+        badput) + '\t' + str(disobayC) + '\n')
 
-    print('\nafter using alg1 rounding\n')
-    f.write('\nafter using alg1 rounding\n')
-    print('hat_y_m_gama\n', hat_y_m_gama)
-    f.write('hat_y_m_gama\n' + str(hat_y_m_gama) + '\n')
-    print('hat_z_m\n', hat_z_m)
-    f.write('hat_z_m\n' + str(hat_z_m) + '\n')
+    # print('\nafter using alg1 rounding\n')
+    # f.write('\nafter using alg1 rounding\n')
+    # print('hat_y_m_gama\n', hat_y_m_gama)
+    # f.write('hat_y_m_gama\n' + str(hat_y_m_gama) + '\n')
+    # print('hat_z_m\n', hat_z_m)
+    # f.write('hat_z_m\n' + str(hat_z_m) + '\n')
     print("objective_hat: ", objective_hat)
     f.write("objective_hat: " + str(objective_hat) + '\n')
-    if objective_hat == 0:
-        print('objective_hat=0, no ratio outputs')
-        f.write('objective_hat=0, no ratio outputs\n')
-        f.write('===================================\n\n')
-    else:
-        ratio = objective * 1.0 / objective_hat
-        f.write("ratio=" + str(ratio) + '\n')
-        f.write('===================================\n\n')
-        print("ratio=", ratio)
-        print('===================================\n\n')
+    # if objective_hat == 0:
+    #     print('objective_hat=0, no ratio outputs')
+    #     f.write('objective_hat=0, no ratio outputs\n')
+    #     f.write('===================================\n\n')
+    # else:
+    #     ratio = objective * 1.0 / objective_hat
+    #     f.write("ratio=" + str(ratio) + '\n')
+    #     f.write('===================================\n\n')
+    #     print("ratio=", ratio)
+    #     print('===================================\n\n')
 
     # satisfy const 1 ###################################
     # 按m序号从小到大（或y_m_gamma值从大到小）纵向遍历hat_y_m_gama，保证每列只有一个1（每个gamma只对应一个m）
-    hat_y_m_gama_sat1, hat_z_m_sat1, objective_hat_sat1 = alg1sim_sat1(M, GAMMA, C, hat_y_m_gama, hat_z_m, objective,
+    hat_y_m_gama_sat1, hat_z_m_sat1, objective_hat_sat1 = alg1sim_sat1(M, GAMMA, C, hat_y_m_gama, hat_z_m,
                                                                        y_m_gamma, use_opt=1)
 
-    print('\nafter satisfy const 1\n')
-    f.write('\nafter satisfy const 1\n')
-    print('hat_y_m_gama_sat1\n', hat_y_m_gama_sat1)
-    f.write('hat_y_m_gama_sat1\n' + str(hat_y_m_gama_sat1) + '\n')
-    print('hat_z_m_sat1\n', hat_z_m_sat1)
-    f.write('hat_z_m_sat1\n' + str(hat_z_m_sat1) + '\n')
-    print("objective_hat_sat1: ", objective_hat_sat1)
-    f.write("objective_hat_sat1: " + str(objective_hat_sat1) + '\n')
-    if objective_hat_sat1 == 0:
-        print('objective_hat_sat1=0, no ratio outputs')
-        f.write('objective_hat_sat1=0, no ratio outputs\n')
-        f.write('===================================\n\n')
-    else:
-        ratio_sat1 = objective * 1.0 / objective_hat_sat1
-        f.write("ratio_sat1=" + str(ratio_sat1) + '\n')
-        f.write('===================================\n\n')
-        print("ratio_sat1=", ratio_sat1)
-        print('===================================\n\n')
+    # print('\nafter satisfy const 1\n')
+    # f.write('\nafter satisfy const 1\n')
+    # print('hat_y_m_gama_sat1\n', hat_y_m_gama_sat1)
+    # f.write('hat_y_m_gama_sat1\n' + str(hat_y_m_gama_sat1) + '\n')
+    # print('hat_z_m_sat1\n', hat_z_m_sat1)
+    # f.write('hat_z_m_sat1\n' + str(hat_z_m_sat1) + '\n')
+    # print("objective_hat_sat1: ", objective_hat_sat1)
+    # f.write("objective_hat_sat1: " + str(objective_hat_sat1) + '\n')
+    # if objective_hat_sat1 == 0:
+    #     print('objective_hat_sat1=0, no ratio outputs')
+    #     f.write('objective_hat_sat1=0, no ratio outputs\n')
+    #     f.write('===================================\n\n')
+    # else:
+    #     ratio_sat1 = objective * 1.0 / objective_hat_sat1
+    #     f.write("ratio_sat1=" + str(ratio_sat1) + '\n')
+    #     f.write('===================================\n\n')
+    #     print("ratio_sat1=", ratio_sat1)
+    #     print('===================================\n\n')
 
     # satisfy const 3 ###################################
     # 遍历每个m（横向），若超出了C约束，则把最右边（或者y_m_gamma最小的）的gamma踢掉，开一个新的z把踢掉的放在那
     hat_y_m_gama_sat3, hat_z_m_sat3, objective_hat_sat3 = alg1sim_sat3(M, GAMMA, C, hat_y_m_gama_sat1, hat_z_m_sat1,
-                                                                       objective, y_m_gamma, 1)
-    print('\nafter satisfy const 3\n')
-    f.write('\nafter satisfy const 3\n')
-    print('hat_y_m_gama_sat3\n', hat_y_m_gama_sat3)
-    f.write('hat_y_m_gama_sat3\n' + str(hat_y_m_gama_sat3) + '\n')
-    print('hat_z_m_sat3\n', hat_z_m_sat3)
-    f.write('hat_z_m_sat3\n' + str(hat_z_m_sat3) + '\n')
-    print("objective_hat_sat3: ", objective_hat_sat3)
-    f.write("objective_hat_sat3: " + str(objective_hat_sat3) + '\n')
-    if objective_hat_sat3 == 0:
-        print('objective_hat_sat3=0, no ratio outputs')
-        f.write('objective_hat_sat3=0, no ratio outputs\n')
-        f.write('===================================\n\n')
-    else:
-        ratio_sat3 = objective * 1.0 / objective_hat_sat3
-        f.write("ratio_sat3=" + str(ratio_sat3) + '\n')
-        f.write('===================================\n\n')
-        print("ratio_sat3=", ratio_sat3)
-        print('===================================\n\n')
+                                                                    y_m_gamma, 1)
+    objective, flow_redict, throughtput, badput, disobayC = cal_res(M, C, GAMMA, hat_y_m_gama_sat3, binary=True)
+    print('Using alg_sat3\n', objective, '\t', flow_redict, '\t', throughtput, '\t', badput, '\t', disobayC, '\n')
+    f.write('Using alg_sat3\n' + str(objective) + '\t' + str(flow_redict) + '\t' + str(throughtput) + '\t' + str(
+        badput) + '\t' + str(disobayC) + '\n')
 
-    return objective, objective_hat, objective_hat_sat1, objective_hat_sat3
+    # print('\nafter satisfy const 3\n')
+    # f.write('\nafter satisfy const 3\n')
+    # print('hat_y_m_gama_sat3\n', hat_y_m_gama_sat3)
+    # f.write('hat_y_m_gama_sat3\n' + str(hat_y_m_gama_sat3) + '\n')
+    # print('hat_z_m_sat3\n', hat_z_m_sat3)
+    # f.write('hat_z_m_sat3\n' + str(hat_z_m_sat3) + '\n')
+    # print("objective_hat_sat3: ", objective_hat_sat3)
+    # f.write("objective_hat_sat3: " + str(objective_hat_sat3) + '\n')
+    # if objective_hat_sat3 == 0:
+    #     print('objective_hat_sat3=0, no ratio outputs')
+    #     f.write('objective_hat_sat3=0, no ratio outputs\n')
+    #     f.write('===================================\n\n')
+    # else:
+    #     ratio_sat3 = objective * 1.0 / objective_hat_sat3
+    #     f.write("ratio_sat3=" + str(ratio_sat3) + '\n')
+    #     f.write('===================================\n\n')
+    #     print("ratio_sat3=", ratio_sat3)
+    #     print('===================================\n\n')
+
+    return

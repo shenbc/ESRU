@@ -25,10 +25,10 @@ def gamma_preset():
 
 if __name__ == '__main__':
     M = []  # NF，如[[0, 0], [1, 0], [2, 0]]，id、服务类别
-    C = 333000  # NF服务能力333000
+    C = 301000  # NF服务能力333000
     GAMMA = []  # 流，如[[0, 0, -1, 70], [1, 0, -1, 80]]，id、从（租户）、到（nf）、流量，其中前1/2是已有流量，后1/2为新到的未分配的
     T = []  # tenant
-    U = 800  # 更新时间限制
+    U = 1600  # 更新时间限制
     u = 0.2  # 一次所需时间，毫秒
     DYNAMIC_PCT1 = 0.2  # 已有的流结束的比例
     DYNAMIC_PCT2 = 0.2  # 新到的未分配的流的比例
@@ -36,19 +36,23 @@ if __name__ == '__main__':
     CYCLE = 1
     f = None
 
-    topo_name = ['./topo/topo_n30_t10_f12000_1.json']
-    # topo_name = ['./topo/topo_n30_t10_f2000_1.json', './topo/topo_n30_t10_f4000_1.json',
-    #              './topo/topo_n30_t10_f6000_1.json', './topo/topo_n30_t10_f8000_1.json',
-    #              './topo/topo_n30_t10_f10000_1.json', './topo/topo_n30_t10_f12000_1.json',
-    #              './topo/topo_n30_t10_f14000_1.json', './topo/topo_n30_t10_f16000_1.json',
-    #              './topo/topo_n30_t10_f18000_1.json', './topo/topo_n30_t10_f20000_1.json',
-    #              './topo/topo_n30_t10_f22000_1.json', './topo/topo_n30_t10_f24000_1.json']
+    # topo_name = ['./topo/topo_n30_t10_f24000_1.json']
+    topo_name = ['./topo/topo_n30_t10_f2000_1.json', './topo/topo_n30_t10_f4000_1.json',
+                 './topo/topo_n30_t10_f6000_1.json', './topo/topo_n30_t10_f8000_1.json',
+                 './topo/topo_n30_t10_f10000_1.json', './topo/topo_n30_t10_f12000_1.json',
+                 './topo/topo_n30_t10_f14000_1.json', './topo/topo_n30_t10_f16000_1.json',
+                 './topo/topo_n30_t10_f18000_1.json', './topo/topo_n30_t10_f20000_1.json',
+                 './topo/topo_n30_t10_f22000_1.json', './topo/topo_n30_t10_f24000_1.json']
     CYCLE_TOPO = len(topo_name)
     res = []
 
     for topo_id in range(CYCLE_TOPO):
+        print('======', topo_name[topo_id], '======')
         with open(topo_name[topo_id]) as json_file:
             data = json.load(json_file)
+            M = []
+            GAMMA = []
+            T = []
             for i in range(len(data['nf_list'])):
                 M.append([data['nf_list'][i]['id'], data['nf_list'][i]['type']])
             for i in range(len(data['flow_list'])):

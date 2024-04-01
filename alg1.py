@@ -63,8 +63,8 @@ def alg1sim_ori(M, C, GAMMA, T, U, u, binary, f):
     tempsum_update_time = 0
     for gamma in GAMMA:
         for m in M:
-            tempsum_update_time += beta_n_gamma[m[0] * len(GAMMA) + gamma[0]] * (
-                    1 - variables_y_m_gamma[m[0] * len(GAMMA) + gamma[0]])
+            tempsum_update_time += (beta_n_gamma[m[0] * len(GAMMA) + gamma[0]] * (
+                    1 - variables_y_m_gamma[m[0] * len(GAMMA) + gamma[0]]))+((1-beta_n_gamma[m[0] * len(GAMMA) + gamma[0]]) * variables_y_m_gamma[m[0] * len(GAMMA) + gamma[0]])
     MyLP += (tempsum_update_time <= U / u)
 
     MyLP.solve()

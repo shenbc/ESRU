@@ -41,7 +41,7 @@ def cal_res(M, C, GAMMA, y_m_gamma, binary):
     flow_redict = 0  # 更改映射的流的条数
     for i in range(len(M)):
         for j in range(len(GAMMA)):
-            flow_redict += (int)(beta_n_gamma[i][j] * (1 - y_m_gamma[i][j]))
+            flow_redict += (int)(beta_n_gamma[i][j] * (1 - y_m_gamma[i][j])) + (int)((1-beta_n_gamma[i][j]) * y_m_gamma[i][j])
 
     # m_load
     m_load = np.zeros(len(M))
@@ -54,9 +54,18 @@ def cal_res(M, C, GAMMA, y_m_gamma, binary):
 
     # badput
     badput = 0
-    for i in range(len(M)):
-        if m_load[i]>C:
-            badput += (m_load[i]-C)
+    # for i in range(len(M)):
+    #     if m_load[i]>C:
+    #         badput += (m_load[i]-C)
+    for j in range(len(GAMMA)):
+        is_alloc = 0
+        for i in range(len(M)):
+            if y_m_gamma[i][j]==1:
+                is_alloc = 1
+                break
+        if is_alloc == 0:
+            badput += GAMMA[j][3]
+
 
     # disobayC
     disobayC = 0

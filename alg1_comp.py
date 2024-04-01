@@ -127,7 +127,7 @@ def alg1sim_round(M, GAMMA, y_m_gamma, z_m, binary):
     return hat_y_m_gama, hat_z_m, objective_hat
 
 
-def alg_SJF(M, C, GAMMA, T, f):
+def alg_SJF(M, C, GAMMA):
     """
     SJF对比算法，为具有最小流量需求的请求选择负担最小的NF【不变目前分配，不影响更新时间约束，但会有badput】
     :return: 分配后所有的流 new_gamma
@@ -215,6 +215,16 @@ def alg_RB(M, C, GAMMA, rec_pct=0.2, ext_pct=0.9):
         if gamma[2] != -1:
             m_load[gamma[2]] += gamma[3]
 
+    # 遍历所有流，当流没有被分配时，按顺序分配到第一个可用NF
+    for gamma in new_gamma:
+        if gamma[2] == -1:
+            for m_idx in range(len(m_load)):
+                if m_load[m_idx]+gamma[3]<=C:
+                    m_load[m_idx]+=gamma[3]
+                    gamma[2] = m_idx
+                    break
+
+
     # 遍历所有NF，遇到小于rec_pct = 20%的就将其流量分配给别人
     for m_idx in range(len(m_load)):
         if m_load[m_idx] <= (C * rec_pct):
@@ -279,7 +289,7 @@ def ALG1COMP(M, C, GAMMA, T, U, u, f):
     # f.write("flow_redict: " + str(flow_redict) + '\n')
 
     # 对比算法，最短作业优先 ################################
-    beta_n_gamma, y_m_gama_SJF, z_m_SJF, objective_SJF, m_load_SJF, flow_redict_SJF = alg_SJF(M, C, GAMMA, T, f)
+    beta_n_gamma, y_m_gama_SJF, z_m_SJF, objective_SJF, m_load_SJF, flow_redict_SJF = alg_SJF(M, C, GAMMA)
     objective, flow_redict, throughtput, badput, disobayC = cal_res(M, C, GAMMA, y_m_gama_SJF, binary=True)
     print('Using alg_SJF\n', objective, '\t', flow_redict, '\t', throughtput, '\t', badput, '\t', disobayC, '\n')
     f.write('Using alg_SJF\n' + str(objective) + '\t' + str(flow_redict) + '\t' + str(throughtput) + '\t' + str(
@@ -299,7 +309,7 @@ def ALG1COMP(M, C, GAMMA, T, U, u, f):
     # f.write("flow_redict_SJF: " + str(flow_redict_SJF) + '\n')
 
     # 对比算法，RB ################################
-    beta_n_gamma, y_m_gama_RB, z_m_RB, objective_RB, m_load_RB, flow_redict_RB = alg_RB(M, C, GAMMA, rec_pct=0.6, ext_pct=0.9)
+    beta_n_gamma, y_m_gama_RB, z_m_RB, objective_RB, m_load_RB, flow_redict_RB = alg_RB(M, C, GAMMA, rec_pct=0.4, ext_pct=0.95)
     objective, flow_redict, throughtput, badput, disobayC = cal_res(M, C, GAMMA, y_m_gama_RB, binary=True)
     print('Using alg_RB\n', objective, '\t', flow_redict, '\t', throughtput, '\t', badput, '\t', disobayC, '\n')
     f.write('Using alg_RB\n' + str(objective) + '\t' + str(flow_redict) + '\t' + str(throughtput) + '\t' + str(

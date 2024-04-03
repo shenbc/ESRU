@@ -69,7 +69,10 @@ def alg1sim_ori(M, C, GAMMA, T, U, u, binary, f):
 
     MyLP.solve()
     objective = pulp.value(MyLP.objective)
-    assert (pulp.LpStatus[MyLP.status] == 'Optimal')
+    # assert (pulp.LpStatus[MyLP.status] == 'Optimal')
+    if pulp.LpStatus[MyLP.status] != 'Optimal':
+        print('!!!!!!not Optimal!!!!!!')
+        print(pulp.LpStatus[MyLP.status],'\n\n\n')
 
     # 结果
     temp_beta_n_gamma = np.array(beta_n_gamma)

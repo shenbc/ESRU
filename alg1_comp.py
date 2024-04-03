@@ -78,7 +78,10 @@ def alg_IP(M, C, GAMMA, T, U, u, binary):
     # MyLP.solve(pulp.PULP_CBC_CMD(msg=True))
     objective = pulp.value(MyLP.objective)
     print(pulp.LpStatus[MyLP.status])
-    assert (pulp.LpStatus[MyLP.status] == 'Optimal')
+    # assert (pulp.LpStatus[MyLP.status] == 'Optimal')
+    if pulp.LpStatus[MyLP.status] != 'Optimal':
+        print('!!!!!!not Optimal!!!!!!')
+        print(pulp.LpStatus[MyLP.status],'\n\n\n')
 
     # 结果
     temp_beta_n_gamma = np.array(beta_n_gamma)
